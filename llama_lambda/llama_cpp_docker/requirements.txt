@@ -1,0 +1,6 @@
+requests
+fastapi
+uvicorn
+mangum
+httpx
+llama-cpp-python
