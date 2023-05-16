@@ -55,8 +55,8 @@ async def prompt(
     text: str,
     request: Request,
     prioroutput: str = "",
-    tokencount: int = 120,
-    penalty: float = 5.5,
+    tokencount: int = 50,
+    penalty: float = 1.1,
 ):
     from llama_cpp import Llama
     import random
@@ -65,19 +65,6 @@ async def prompt(
     for header,value in request.headers.items():
         requestdict[header]=value
     returndict={}    
-
-        
-
-    #if not "x-rapidapi-proxy-secret" in requestdict.keys() and not "x-rapidapi-host" in requestdict.keys():
-    #    print("SECURITY LOG: There was a failed authentication invocation. Here are the headers: "+str(requestdict))
-    #    raise HTTPException(status_code=401, detail="Missing RapidAPI authentication headers ")
-
-
-    # Validate the headers (replace with your actual values)
-    #if requestdict['x-rapidapi-proxy-secret'] != API_PROXY_SECRET or requestdict['x-rapidapi-host'] != API_PROXY_HOST:
-    #    print("SECURITY LOG: There was an access denied due to failure of proxy secret or rapidapi host match. Here are the headers: "+str(requestdict))
-    #    raise HTTPException(status_code=403, detail="Invalid RapidAPI authentication")
-
 
     try:
         llm = Llama(model_path=MODELPATH,seed=random.randint(0,65535))
