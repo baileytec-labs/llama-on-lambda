@@ -57,17 +57,20 @@ async def prompt(
     prioroutput: str = "",
     tokencount: int = 50,
     penalty: float = 1.1,
+    seedval: int = 0,
 ):
     from llama_cpp import Llama
     import random
-# Check if the headers are present
+    # Check if the headers are present, you can do something with this if you'd like to send headers to your function, otherwise ignore
     requestdict={}
     for header,value in request.headers.items():
         requestdict[header]=value
     returndict={}    
 
     try:
-        llm = Llama(model_path=MODELPATH,seed=random.randint(0,65535))
+        if seedval ==0:
+            seedval=random.randint(0,65535)
+        llm = Llama(model_path=MODELPATH,seed=seedval)
         output = llm(" Below is an instruction that describes a task, as well as any previous text you have generated. You must continue where you left off if there is text following Previous Output. Write a response that appropriately completes the request. When you are finished, write [[COMPLETE]].\n\n Instruction: "+text+" Previous output: "+prioroutput+" Response:", repeat_penalty=penalty, echo=False, max_tokens=tokencount)
         returndict['returnmsg']=output['choices'][0]['text']
 
