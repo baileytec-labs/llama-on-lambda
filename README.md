@@ -74,3 +74,9 @@ ___
 ## Next Steps
 
 This Lambda function is deployed with the largest values Lambda supports (10GB Memory). However, feel free to tweak the models, the function configuration, and the input values you want to use in order to optimize for your Lambda consumption. _Remember, AWS Accounts get 400k GB-s of Lambda functions for free each month_, which opens up the possibilities to have Generative AI capabilities with minimal cost. Check CloudWatch to determine what is going on with your function, and enjoy! Huge thanks to the [llama.cpp](https://github.com/ggerganov/llama.cpp) and the [llama-cpp-python](https://github.com/abetlen/llama-cpp-python) projects, without which this project would not be possible!
+
+# <a name="connect"></a> 🔗 Connect with me
+
+<a href="https://www.baileytec.net" target="_blank"><img alt="Website" src="https://img.shields.io/badge/Personal%20Website-%2312100E.svg?&style=for-the-badge&logoColor=white" /></a>
+<a href="https://medium.com/@seanbailey518" target="_blank"><img alt="Medium" src="https://img.shields.io/badge/medium-%2312100E.svg?&style=for-the-badge&logo=medium&logoColor=white" /></a>
+<a href="https://www.linkedin.com/in/baileytec/" target="_blank"><img alt="LinkedIn" src="https://img.shields.io/badge/linkedin-%230077B5.svg?&style=for-the-badge&logo=linkedin&logoColor=white" /></a>
