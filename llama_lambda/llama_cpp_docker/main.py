@@ -8,47 +8,9 @@ import subprocess
 import httpx
 
 MODELPATH="/opt/modelfile.bin"
-#os.environ.get('MODELPATH') #this will need to be set.
-#CHATPATH=os.environ.get('CHATPATH')
-#API_PROXY_SECRET=os.environ.get("APIPROXYSECRET")
-#API_PROXY_HOST=os.environ.get("APIPROXYHOST")
 stage = os.environ.get('STAGE', None)
 openapi_prefix = f"/{stage}" if stage else "/"
-
 app = FastAPI(title="OpenLLaMa on Lambda API", openapi_prefix=openapi_prefix) # Here is the magic
-
-
-#@app.post("/stream")
-#async def stream(
-#    text: str,
-    #x_rapidapi_key: str = Header(None, alias="X-RapidAPI-Key"),
-    #x_rapidapi_proxy_secret: str = Header(None, alias="X-RapidAPI-Proxy-Secret"),
-#):
-    # Check if the headers are present
-#    returndict={}
-    #if not x_rapidapi_key or not x_rapidapi_proxy_secret:
-    #    raise HTTPException(status_code=401, detail="Missing RapidAPI authentication headers")
-
-
-    # Validate the headers (replace with your actual values)
-    #if x_rapidapi_proxy_secret != API_PROXY_SECRET:
-    #    raise HTTPException(status_code=403, detail="Invalid RapidAPI authentication")
-
-#    try:
-    #    validapi=validate_rapidapi_key(x_rapidapi_key)
-
-    #    if validapi:
-        #returndict['returnmsg']=runPrompt(text)
-#        return StreamingResponse(runPrompt(text))
-    #    else:
-    #        raise HTTPException(status_code=403, detail="Invalid API Key")
-
-
-#    except Exception as e:
-#        print(traceback.format_exc())
-
-#        raise HTTPException(status_code=500, detail="Internal server error")
-
 
 @app.post("/prompt")
 async def prompt(
