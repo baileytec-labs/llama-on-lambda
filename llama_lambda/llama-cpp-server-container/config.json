@@ -1,0 +1,16 @@
+{
+    "host": "0.0.0.0",
+    "port": 5001,
+    "api_key": "change_this_key",
+    "models": [
+        {
+            "model": "modelfile.bin",
+            "model_alias": "llama_lambda_model",
+            "n_gpu_layers": -1,
+            "offload_kqv": true,
+            "n_threads": 3,
+            "n_threads_batch":3,
+            "n_ctx": 4000
+        }
+    ]
+}
