@@ -1,0 +1,39 @@
+FROM --platform=linux/arm64 ubuntu:22.04
+ARG CHAT_FORMAT="mistral-instruct"
+ARG MODEL_FILE
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update && \
+  apt-get install -y \
+  g++ \
+  wget \
+  make \
+  cmake \
+  unzip \
+  libcurl4-openssl-dev \
+  python3 \
+  python3-pip \
+  python3-dev \
+  git \
+  libclblast-dev \
+  libopenblas-dev 
+RUN rm -rf /var/lib/apt/lists/*
+
+COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.7.0 /lambda-adapter /opt/extensions/lambda-adapter
+#Anything higher than v0.7.0 seems to have problems resolving and breaks 
+#COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.8.1 /lambda-adapter /opt/extensions/lambda-adapter
+
+WORKDIR "/app"
+
+ENV AWS_LWA_INVOKE_MODE=response_stream
+
+RUN wget ${MODEL_FILE} -O modelfile.bin
+COPY requirements.txt .
+COPY config.json .
+RUN echo "V1.01 update"
+ENV PORT=5001
+RUN pip3 install psutil
+RUN pip3 install -r requirements.txt
+
+#note that as of now it appears that the Lambda function is not allowing for the multiprocessing cpu count implementation of the universal deployment here. We'll have to use the old lambda table values. The config here will be manually set.
+EXPOSE 5001
+CMD [ "python3", "-m", "llama_cpp.server","--config_file","config.json","--verbose","False"]

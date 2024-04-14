@@ -5,12 +5,8 @@ source .venv/bin/activate
 pip3 install -r requirements.txt
 
 
-read -p "Please provide the direct link to the model you'd like to use (Default https://huggingface.co/vihangd/open_llama_7b_300bt_ggml/resolve/main/ggml-model-q4_0.bin):" MODELURL
+read -p "Please provide the direct link to the model you'd like to use (Default https://huggingface.co/stabilityai/stablelm-2-zephyr-1_6b/resolve/main/stablelm-2-zephyr-1_6b-Q5_K_M.gguf):" MODELURL
 
-MODELURL=${MODELURL:-https://huggingface.co/vihangd/open_llama_7b_300bt_ggml/resolve/main/ggml-model-q4_0.bin}
+MODELURL=${MODELURL:-https://huggingface.co/stabilityai/stablelm-2-zephyr-1_6b/resolve/main/stablelm-2-zephyr-1_6b-Q5_K_M.gguf}
 
-echo "Downloading $MODELURL"
-
-wget -O ./llama_cpp_docker/modelfile.bin "$MODELURL"
-
-cdk deploy
+cdk deploy -c modelfile=$MODELURL

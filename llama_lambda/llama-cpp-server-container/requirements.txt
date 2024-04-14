@@ -1,0 +1,2 @@
+git+https://github.com/sean-bailey/llama-cpp-python.git#egg=llama_cpp_python[all]
+boto3
