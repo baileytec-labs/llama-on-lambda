@@ -1,18 +1,20 @@
-# Create a virtual environment
+# This script should be run with PowerShell
+
+# Create a Python virtual environment
 python -m venv .venv
-
 # Activate the virtual environment
-.venv\Scripts\Activate
+.venv\Scripts\Activate.ps1
 
-# Install dependencies
+# Install dependencies from requirements.txt
 pip install -r requirements.txt
 
-# Get the model URL from the user with a default value
-$MODELURL = Read-Host -Prompt "Please provide the direct link to the model you'd like to use" -Default "https://huggingface.co/vihangd/open_llama_7b_300bt_ggml/resolve/main/ggml-model-q4_0.bin"
+# Prompt the user for the model URL
+$modelURL = Read-Host "Please provide the direct link to the model you'd like to use (Default https://huggingface.co/stabilityai/stablelm-2-zephyr-1_6b/resolve/main/stablelm-2-zephyr-1_6b-Q5_K_M.gguf)"
 
-# Download the model
-Write-Host "Downloading $MODELURL"
-Invoke-WebRequest -Uri $MODELURL -OutFile "./llama_cpp_docker/modelfile.bin"
+# If no URL is provided, use the default
+if ([string]::IsNullOrEmpty($modelURL)) {
+    $modelURL = "https://huggingface.co/stabilityai/stablelm-2-zephyr-1_6b/resolve/main/stablelm-2-zephyr-1_6b-Q5_K_M.gguf"
+}
 
-# Deploy with CDK
-cdk deploy
+# Deploy using the cdk command, adjusting for correct context parameter usage in PowerShell
+cdk deploy --context modelfile=$modelURL
