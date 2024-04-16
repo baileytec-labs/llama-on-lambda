@@ -22,6 +22,7 @@ class LambdaFunctionStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         titlemessage = "Quantized LLM Running on AWS Lambda"
+        apikey = self.node.try_get_context("apikey") or "insert_api_key_here"
         chatformat = self.node.try_get_context("chatformat") or "mistral-instruct"
         modelfile = self.node.try_get_context("modelfile") or "https://huggingface.co/stabilityai/stablelm-2-zephyr-1_6b/resolve/main/stablelm-2-zephyr-1_6b-Q5_K_M.gguf"
         #--------------------------------------llama_lambda_server Lambda Function---------------------------------------------
@@ -55,6 +56,7 @@ class LambdaFunctionStack(Stack):
                                                          build_args={
             "CHAT_FORMAT": chatformat,
             "MODEL_FILE": modelfile,
+            "APIKEY":apikey,
         }),
         )
 
