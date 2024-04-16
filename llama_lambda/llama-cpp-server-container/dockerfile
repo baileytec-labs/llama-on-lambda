@@ -1,6 +1,7 @@
 FROM --platform=linux/arm64 ubuntu:22.04
 ARG CHAT_FORMAT="mistral-instruct"
 ARG MODEL_FILE
+ARG APIKEY
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && \
   apt-get install -y \
@@ -14,6 +15,7 @@ RUN apt-get update && \
   python3-pip \
   python3-dev \
   git \
+  jq \
   libclblast-dev \
   libopenblas-dev 
 RUN rm -rf /var/lib/apt/lists/*
@@ -27,9 +29,9 @@ WORKDIR "/app"
 ENV AWS_LWA_INVOKE_MODE=response_stream
 
 RUN wget ${MODEL_FILE} -O modelfile.bin
-COPY requirements.txt .
-COPY config.json .
-RUN echo "V1.01 update"
+RUN wget https://raw.githubusercontent.com/baileytec-labs/llama-on-lambda/main/llama_lambda/llama-cpp-server-container/requirements.txt -O requirements.txt
+RUN wget https://raw.githubusercontent.com/baileytec-labs/llama-on-lambda/main/llama_lambda/llama-cpp-server-container/config.json -O config.json
+RUN jq --arg apikey "$APIKEY" '.api_key = $apikey' config.json > config_updated.json && mv config_updated.json config.json
 ENV PORT=5001
 RUN pip3 install psutil
 RUN pip3 install -r requirements.txt
