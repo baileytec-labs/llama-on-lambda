@@ -4,6 +4,8 @@
 
 Docker images, code, buildspecs, and guidance provided as proof of concept only and for educational purposes only.
 
+### Update: The Docker container has been upgraded to now be fully compatible with the [OpenAI API Spec](https://platform.openai.com/docs/api-reference/introduction)
+
 ## Backgorund
 
 Today, there is an explosion of generative AI capabilities across various platforms. Recently, an [open source release of a LLaMa compatible model](https://github.com/openlm-research/open_llama) was trained on the open RedPyjama Dataset, which now opens the possibilities for more freedom to use these types of generative models in various applications. 
@@ -35,6 +37,8 @@ Lambda Docker Containers have a hard limit of 10GB in size, but that offers plen
 ---
 ## Installation
 
+### The default installation deploys the new OpenAI API compatible endpoint. See the Usage sectionfor more details. If you would like to leverage the original legacy version of this deployment, simply rename the `llama_lambda/legacy_app.py` to `llama_lambda/app.py` and everything should run normally. I recommend you make a copy of the original app.py. Maybe call it something like "newapp.py"? 
+
 Once you've installed the requirements, on Mac/Linux:
 
 1) Download this repository.
@@ -59,6 +63,71 @@ For Windows users, ensure you have the requirements properly installed, and do t
 
 ## Usage
 
+### OPENAI COMPATIBLE API
+
+Since the original development of this project, there has been an explosion in the development of the ggmml project into the gguf project, and all the trappings in between. I've updated the docker container and the cdk code to deploy a new optimized Lambda function which is fully compatible with the OpenAI API Spec using the [llama-cpp-python](https://github.com/abetlen/llama-cpp-python) library. This means you can deploy your function using a model (I recommend a 3B or smaller, the current configuration is set up for a 1.6B) and actually have it stream at 3-6 Tokens Per Second. Here's a code example on how you can interact with your endpoint:
+
+```
+!pip install openai requests
+from openai import OpenAI
+import datetime
+import requests
+import time
+import random
+yourUrl="<The Lambda function URL without /docs>"
+promptmessage = "What is the capital of France?"
+yourAPIKey="<the key you specified in the config.json>" 
+# Configuration Settings - Adjusted for local LLM or compatible endpoint
+agentprompt="You are a helpful assistant."
+prompt_message=promptmessage
+if not yourUrl.endswith("/v1"):
+  yourUrl = yourUrl + "/v1"
+client=OpenAI(api_key=yourAPIKey,base_url=yourUrl)
+starttime=time.time()
+stream = client.chat.completions.create(
+    model="fastmodel", #fastmodel or strongmodel
+    messages= [
+            {"content": agentprompt, "role": "system"},
+            {"content": prompt_message, "role": "user"},
+        ],
+    stream=True,
+)
+firstchunk=True
+totalchunks=0
+try:
+  for chunk in stream:
+      #print(chunk)
+        if firstchunk:
+            timetofirstchunk=time.time()
+            firstchunk=False
+        if "[/" in str(chunk.choices[0].delta.content):
+          break
+        print(chunk.choices[0].delta.content or "", end="")
+        totalchunks+=1
+except Exception as e:
+  print(str(e))
+endtime=time.time()
+tps = totalchunks/(endtime-starttime)
+try:
+  firstchunktime = timetofirstchunk - starttime
+except:
+  firstchunktime = "N/A"
+print("")
+print("Tokens per second:")
+print(tps)
+print("Time to first chunk (seconds):")
+print(firstchunktime)
+print("Total Time (seconds): ")
+print(endtime-starttime)
+print("Total Chunks (tokens): ")
+print(totalchunks)
+
+```
+
+This way, you don't need to create custom code to interact with your endpoint, instead using industry standard code. And, because it's compatible with the OpenAI API Spec, anything which leverages it (such as LangChain) will be fully compatible, so long as you point the client to your URL and API key.
+
+
+### LEGACY: 
 Open your browser and navigate to the URL that you were provided by the CDK output and you should be presented with a simple FastAPI frontend allowing you to test out the functionality of your model. Note that it does NOT load the model until you use the `/prompt` endpoint of your API, so if there are problems with your model, you won't know until you get to that point. This is by design so you can see if the Lambda function is working properly before testing the model.
 
 Here's what the different input values do:
