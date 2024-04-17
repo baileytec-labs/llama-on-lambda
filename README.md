@@ -59,6 +59,8 @@ For Windows users, ensure you have the requirements properly installed, and do t
     * Note that if you get a permissions based error, you can manually open the install.ps1 script and type out the commands manually. You will need to look into `Set-ExecutionPolicy`, and I will not be providing security recommendations for your system.
 5) Follow the prompts, and when complete, the CDK will provide you with a Lambda Function URL to test the function.
 
+Note: On first use, there is a chance an error will surface related to AWS allocation of DRAM for individual lambda functions.  This can happen even if the allocation in your region's service quotas is at the ~10GB limit.  An independent service request increase has to be sent to alter this hidden limit.
+
 ---
 
 ## Usage
