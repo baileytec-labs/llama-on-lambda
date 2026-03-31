@@ -1,7 +1,7 @@
 # Define function directory
 ARG FUNCTION_DIR="/function"
 
-FROM --platform=linux/x86-64 ubuntu:22.04
+FROM --platform=linux/arm64 ubuntu:22.04
 ENV DEBIAN_FRONTEND noninteractive
 
 # Install aws-lambda-cpp build dependencies
