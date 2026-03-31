@@ -35,6 +35,17 @@ Lambda Docker Containers have a hard limit of 10GB in size, but that offers plen
 * Python3.9+
 
 ---
+
+## Architecture Options
+
+This project now defaults to ARM64 architecture for optimal performance:
+
+- **ARM64 (default)**: ~250ms/token, runs on ARM-based instances (Graviton, Apple Silicon, Raspberry Pi)
+- **x86_64 (legacy)**: >300ms/token, runs on traditional x86 instances
+
+ARM64 provides better performance and lower cost on ARM-based infrastructure. Both Docker containers support ARM64 by default.
+
+---
 ## Installation
 
 ### The default installation deploys the new OpenAI API compatible endpoint. See the Usage sectionfor more details. If you would like to leverage the original legacy version of this deployment, simply rename the `llama_lambda/legacy_app.py` to `llama_lambda/app.py` and everything should run normally. I recommend you make a copy of the original app.py. Maybe call it something like "newapp.py"? 
