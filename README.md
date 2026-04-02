@@ -28,7 +28,7 @@ This has sparked an idea -- What if we could have a scalable, serverless LLM Gen
 The premise is rather simple: deploy a container which can run the llama.cpp converted models onto AWS Lambda. This gives the advantages of scale which Lambda provides, minimizing cost and maximizing compute availability for your project. This project contains the AWS CDK code to create and deploy a Lambda function leveraging your model of choice**, with a FastAPI frontend accessible from a Lambda URL. Lambda also provides a great case for developers and businesses which want to deploy functions such as this: You get 400k GB-s of Lambda Compute each month for free, meaning with proper tuning, you can have scalable inference of these Generative AI LLMs for minimal cost.
 
 
-**Note that you will need to have ggml quantized versions of your model, and you will likely need model sizes which are under 6GB. Regardless, your inference RAM requirements cannot exceed 9GB, or your Lambda function will fail**
+**Note that you will need to have GGUF quantized versions of your model, and you will likely need model sizes which are under 6GB. Regardless, your inference RAM requirements cannot exceed 9GB, or your Lambda function will fail**
 
 _Wait, what?_ 
 
