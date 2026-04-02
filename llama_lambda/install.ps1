@@ -1,18 +1,15 @@
-# Create a virtual environment
 python -m venv .venv
-
-# Activate the virtual environment
-.venv\Scripts\Activate
-
-# Install dependencies
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 
-# Get the model URL from the user with a default value
-$MODELURL = Read-Host -Prompt "Please provide the direct link to the model you'd like to use" -Default "https://huggingface.co/vihangd/open_llama_7b_300bt_ggml/resolve/main/ggml-model-q4_0.bin"
+$MODELURL = Read-Host -Prompt "Please provide the direct link to the model you'd like to use (Default https://huggingface.co/stabilityai/stablelm-2-zephyr-1_6b/resolve/main/stablelm-2-zephyr-1_6b-Q5_K_M.gguf)"
+if ($MODELURL -eq "") {
+    $MODELURL = "https://huggingface.co/stabilityai/stablelm-2-zephyr-1_6b/resolve/main/stablelm-2-zephyr-1_6b-Q5_K_M.gguf"
+}
 
-# Download the model
-Write-Host "Downloading $MODELURL"
-Invoke-WebRequest -Uri $MODELURL -OutFile "./llama_cpp_docker/modelfile.bin"
+$APIKEY = Read-Host -Prompt "Please provide your API key that you want your Lambda LLM Server to require when using (just hit enter if using legacy)"
+if ($APIKEY -eq "") {
+    $APIKEY = "insert_key_here"
+}
 
-# Deploy with CDK
-cdk deploy
+cdk deploy -c modelfile=$MODELURL -c apikey=$APIKEY
