@@ -1,6 +1,6 @@
 requests
 fastapi
 uvicorn
-mangum
+aws-lambda-web-adapter
 httpx
 llama-cpp-python
