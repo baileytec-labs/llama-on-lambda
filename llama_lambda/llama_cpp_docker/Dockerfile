@@ -29,6 +29,9 @@ RUN pip3 install \
        # --target ${FUNCTION_DIR} \
         awslambdaric
 
+# Install Lambda Web Adapter for streaming support
+RUN pip3 install aws-lambda-web-adapter --target "${FUNCTION_DIR}"
+
 # Install the function's dependencies using file requirements.txt
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt --target "${FUNCTION_DIR}"
