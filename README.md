@@ -155,6 +155,86 @@ Here's what the different input values do:
 
 ___
 
+## Cost Breakdown
+
+Running Llama models on AWS Lambda is surprisingly cost-effective, especially when leveraging the free tier. Here's a detailed breakdown:
+
+### AWS Lambda Free Tier
+- **1 million free requests per month**
+- **400,000 GB-seconds of compute time per month**
+- **100 GB free HTTP response streaming per month**
+
+### Pricing Tiers (US East - N. Virginia)
+- **Request price**: $0.20 per 1 million requests
+- **Compute price (x86)**: $0.0000166667 per GB-second
+- **Compute price (Arm/Graviton)**: ~34% cheaper than x86
+
+### Cost Examples by Model Size
+
+#### 1.6B Model (1536 MB memory, ~120ms inference time)
+**Monthly usage: 3 million requests**
+- Compute: 3M × 120ms × 1.5GB = 540,000 GB-s
+- Free tier: 400,000 GB-s
+- Billable: 140,000 GB-s × $0.0000166667 = **$2.33**
+- Requests: 3M - 1M free = 2M × $0.20/M = **$0.40**
+- **Total: ~$2.73/month**
+
+#### 3B Model (2048 MB memory, ~200ms inference time)
+**Monthly usage: 1 million requests**
+- Compute: 1M × 200ms × 2GB = 400,000 GB-s
+- Free tier: 400,000 GB-s
+- Billable: **$0** (within free tier!)
+- Requests: 1M - 1M free = **$0**
+- **Total: $0/month (free tier)**
+
+#### 7B Model (6144 MB memory, ~500ms inference time)
+**Monthly usage: 500,000 requests**
+- Compute: 500K × 500ms × 6GB = 1,500,000 GB-s
+- Free tier: 400,000 GB-s
+- Billable: 1,100,000 GB-s × $0.0000166667 = **$18.33**
+- Requests: 500K (within free tier) = **$0**
+- **Total: ~$18.33/month**
+
+### Free Tier Utilization Calculator
+
+To check if your usage fits within the free tier:
+
+```
+Total GB-s = (requests per month) × (avg inference time in seconds) × (memory in GB)
+
+Example: 10,000 requests/day × 30 days × 0.3s × 3GB = 270,000 GB-s
+→ Within free tier (400,000 GB-s) → **FREE!**
+```
+
+### Cost Optimization Tips
+
+1. **Use Arm/Graviton processors**: 34% cost savings over x86
+2. **Right-size memory**: Only allocate what you need (128MB - 10GB)
+3. **Optimize inference time**: Use quantized models (Q4_K_M, Q5_K_M)
+4. **Batch requests**: If your use case allows, batch multiple queries
+5. **Monitor with CloudWatch**: Track actual usage vs. free tier limits
+
+### Comparison to Alternatives
+
+| Deployment | Monthly Cost (3B model, 1M reqs) | Notes |
+|------------|----------------------------------|-------|
+| **AWS Lambda** | $0 - $5 | Free tier covers most use cases |
+| **EC2 t3.medium** | ~$30-40 | Always-on, no scaling benefits |
+| **GPU Instance** | $100-300+ | Overkill for small models |
+| **API Services** | $50-200 | Per-request pricing |
+
+**Lambda wins on cost for low-to-medium traffic scenarios** thanks to the generous free tier and pay-per-use model.
+
+### Real-World Example
+
+A personal chatbot with ~500 daily users:
+- 500 × 30 = 15,000 requests/month
+- 3B model, 2GB memory, 200ms inference
+- 15,000 × 0.2s × 2GB = 6,000 GB-s
+- **Well within free tier → $0/month!**
+
+---
+
 ## Next Steps
 
 This Lambda function is deployed with the largest values Lambda supports (10GB Memory). However, feel free to tweak the models, the function configuration, and the input values you want to use in order to optimize for your Lambda consumption. _Remember, AWS Accounts get 400k GB-s of Lambda functions for free each month_, which opens up the possibilities to have Generative AI capabilities with minimal cost. Check CloudWatch to determine what is going on with your function, and enjoy! Huge thanks to the [llama.cpp](https://github.com/ggerganov/llama.cpp) and the [llama-cpp-python](https://github.com/abetlen/llama-cpp-python) projects, without which this project would not be possible!
