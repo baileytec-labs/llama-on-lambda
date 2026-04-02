@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - dev
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r llama_lambda/requirements.txt
+          pip install -r llama_lambda/requirements-dev.txt
+          pip install pytest-cov
+
+      - name: Run tests
+        run: |
+          cd llama_lambda
+          pytest --cov=llama_lambda --cov-report=term-missing --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: github.event_name == 'push'
+        with:
+          file: ./llama_lambda/coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
