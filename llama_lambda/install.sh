@@ -16,3 +16,4 @@ read -p "Please select architecture (ARM_64 for best performance, X86_64 for leg
 ARCHITECTURE=${ARCHITECTURE:-ARM_64}
 
 cdk deploy -c modelfile=$MODELURL -c apikey=$APIKEY -c architecture=$ARCHITECTURE
+
