@@ -1,20 +1,30 @@
 name: CI
+
 on: [push, pull_request]
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.11'
+
       - name: Install dependencies
         run: |
-          cd llama_lambda
-          pip install -r requirements.txt
+          pip install --upgrade pip
+          cd llama_lambda && pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
       - name: Run syntax check
         run: |
           python3 -m py_compile llama_lambda/app.py
           python3 -m py_compile llama_lambda/legacy_app.py
           python3 -m py_compile llama_lambda/llama_cpp_docker/main.py
+
+      - name: Run tests
+        run: |
+          pytest tests/ -v
