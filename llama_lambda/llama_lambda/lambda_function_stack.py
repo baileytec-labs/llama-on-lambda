@@ -25,6 +25,15 @@ class LambdaFunctionStack(Stack):
         apikey = self.node.try_get_context("apikey") or "insert_api_key_here"
         chatformat = self.node.try_get_context("chatformat") or "mistral-instruct"
         modelfile = self.node.try_get_context("modelfile") or "https://huggingface.co/stabilityai/stablelm-2-zephyr-1_6b/resolve/main/stablelm-2-zephyr-1_6b-Q5_K_M.gguf"
+        architecture = self.node.try_get_context("architecture") or "ARM_64"
+        
+        # Map architecture string to AWS CDK enum
+        arch_map = {
+            "ARM_64": aws_lambda.Architecture.ARM_64,
+            "X86_64": aws_lambda.Architecture.X86_64
+        }
+        selected_arch = arch_map.get(architecture.upper(), aws_lambda.Architecture.ARM_64)
+        
         #--------------------------------------llama_lambda_server Lambda Function---------------------------------------------
         llama_lambda_server_lambda_function_name="llama_lambda_server_lambda_function"
 
@@ -42,7 +51,7 @@ class LambdaFunctionStack(Stack):
         )
 
         llama_lambda_server_lambda_function=aws_lambda.DockerImageFunction(self,llama_lambda_server_lambda_function_name,
-        architecture=aws_lambda.Architecture.ARM_64,
+        architecture=selected_arch,
         timeout=Duration.seconds(300), #I'm seeing 150s at times needed to process responses, so I'll give double the time just in case.
         log_retention=logs.RetentionDays.ONE_WEEK,
         environment={

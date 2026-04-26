@@ -2,7 +2,7 @@
 import os
 import json
 from fastapi import FastAPI, Header, HTTPException, Request
-from mangum import Mangum
+from lambda_web_adapter import LambdaWebAdapter
 import traceback
 import subprocess
 import httpx
@@ -10,7 +10,7 @@ import httpx
 MODELPATH="/opt/modelfile.bin"
 stage = os.environ.get('STAGE', None)
 openapi_prefix = f"/{stage}" if stage else "/"
-app = FastAPI(title="OpenLLaMa on Lambda API", openapi_prefix=openapi_prefix) # Here is the magic
+app = FastAPI(title="OpenLLaMa on Lambda API", openapi_prefix=openapi_prefix)
 
 @app.post("/prompt")
 async def prompt(
@@ -43,6 +43,7 @@ async def prompt(
     return returndict
 
 
-handler=Mangum(app)
+# Use Lambda Web Adapter for better streaming support
+handler=LambdaWebAdapter(app)
 
 

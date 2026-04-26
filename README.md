@@ -1,4 +1,4 @@
-# OpenLLaMa on AWS Lambda
+# Llama Models on AWS Lambda
 
 :warning: **FOR EDUCATIONAL PURPOSES ONLY** :warning:
 
@@ -6,9 +6,16 @@ Docker images, code, buildspecs, and guidance provided as proof of concept only 
 
 ### Update: The Docker container has been upgraded to now be fully compatible with the [OpenAI API Spec](https://platform.openai.com/docs/api-reference/introduction)
 
-## Backgorund
+## Model Support
 
-Today, there is an explosion of generative AI capabilities across various platforms. Recently, an [open source release of a LLaMa compatible model](https://github.com/openlm-research/open_llama) was trained on the open RedPyjama Dataset, which now opens the possibilities for more freedom to use these types of generative models in various applications. 
+**This project supports ANY GGUF quantized Llama-compatible model**, including:
+- **Llama 3** (7B, 8B, and smaller variants)
+- **Llama 2** (7B, 13B, and smaller variants)
+- **OpenLLaMa** (3B, 7B, 13B)
+- **Mistral** (7B)
+- **Any other GGUF model** under 6GB
+
+**Important**: You will need GGUF quantized versions of your model. llama-cpp-python requires GGUF format (GGML is no longer supported). 
 
 Efforts have also been made to make these models as efficient as possible via the [llama.cpp project](https://github.com/ggerganov/llama.cpp), enabling the usage of more accessible CPU and RAM configurations instead of the limited and expensive GPU capabilities. In fact, with many of the quantizations of these models, you can provide reasonably responsive inferences on as little as 4-6 GB of RAM on a CPU, and even on an Android smartphone, if you're patient enough.
 
@@ -21,7 +28,7 @@ This has sparked an idea -- What if we could have a scalable, serverless LLM Gen
 The premise is rather simple: deploy a container which can run the llama.cpp converted models onto AWS Lambda. This gives the advantages of scale which Lambda provides, minimizing cost and maximizing compute availability for your project. This project contains the AWS CDK code to create and deploy a Lambda function leveraging your model of choice**, with a FastAPI frontend accessible from a Lambda URL. Lambda also provides a great case for developers and businesses which want to deploy functions such as this: You get 400k GB-s of Lambda Compute each month for free, meaning with proper tuning, you can have scalable inference of these Generative AI LLMs for minimal cost.
 
 
-**Note that you will need to have ggml quantized versions of your model, and you will likely need model sizes which are under 6GB. Regardless, your inference RAM requirements cannot exceed 9GB, or your Lambda function will fail**
+**Note that you will need to have GGUF quantized versions of your model, and you will likely need model sizes which are under 6GB. Regardless, your inference RAM requirements cannot exceed 9GB, or your Lambda function will fail**
 
 _Wait, what?_ 
 
@@ -30,9 +37,20 @@ Lambda Docker Containers have a hard limit of 10GB in size, but that offers plen
 ---
 ## Requirements
 * You need [Docker](https://www.docker.com/) installed on your system and running. You will be building a container.
-* Go to [Huggingface](https://huggingface.co/models) and pick out a GGML quantized model compatible with llama.cpp.
+* Go to [Huggingface](https://huggingface.co/models) and pick out a GGUF quantized model compatible with llama.cpp. Note: llama-cpp-python now requires GGUF format (GGML is no longer supported).
 * You need to have the [AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html) installed on your system, as well as an AWS account, proper credentials, etc.
 * Python3.9+
+
+---
+
+## Architecture Options
+
+This project now defaults to ARM64 architecture for optimal performance:
+
+- **ARM64 (default)**: ~250ms/token, runs on ARM-based instances (Graviton, Apple Silicon, Raspberry Pi)
+- **x86_64 (legacy)**: >300ms/token, runs on traditional x86 instances
+
+ARM64 provides better performance and lower cost on ARM-based infrastructure. Both Docker containers support ARM64 by default.
 
 ---
 ## Installation
@@ -143,6 +161,86 @@ Here's what the different input values do:
 `seedval` -- Default at 0, this is the seed for your model. If you have it set to zero, it will choose a random seed for each generation. 
 
 ___
+
+## Cost Breakdown
+
+Running Llama models on AWS Lambda is surprisingly cost-effective, especially when leveraging the free tier. Here's a detailed breakdown:
+
+### AWS Lambda Free Tier
+- **1 million free requests per month**
+- **400,000 GB-seconds of compute time per month**
+- **100 GB free HTTP response streaming per month**
+
+### Pricing Tiers (US East - N. Virginia)
+- **Request price**: $0.20 per 1 million requests
+- **Compute price (x86)**: $0.0000166667 per GB-second
+- **Compute price (Arm/Graviton)**: ~34% cheaper than x86
+
+### Cost Examples by Model Size
+
+#### 1.6B Model (1536 MB memory, ~120ms inference time)
+**Monthly usage: 3 million requests**
+- Compute: 3M × 120ms × 1.5GB = 540,000 GB-s
+- Free tier: 400,000 GB-s
+- Billable: 140,000 GB-s × $0.0000166667 = **$2.33**
+- Requests: 3M - 1M free = 2M × $0.20/M = **$0.40**
+- **Total: ~$2.73/month**
+
+#### 3B Model (2048 MB memory, ~200ms inference time)
+**Monthly usage: 1 million requests**
+- Compute: 1M × 200ms × 2GB = 400,000 GB-s
+- Free tier: 400,000 GB-s
+- Billable: **$0** (within free tier!)
+- Requests: 1M - 1M free = **$0**
+- **Total: $0/month (free tier)**
+
+#### 7B Model (6144 MB memory, ~500ms inference time)
+**Monthly usage: 500,000 requests**
+- Compute: 500K × 500ms × 6GB = 1,500,000 GB-s
+- Free tier: 400,000 GB-s
+- Billable: 1,100,000 GB-s × $0.0000166667 = **$18.33**
+- Requests: 500K (within free tier) = **$0**
+- **Total: ~$18.33/month**
+
+### Free Tier Utilization Calculator
+
+To check if your usage fits within the free tier:
+
+```
+Total GB-s = (requests per month) × (avg inference time in seconds) × (memory in GB)
+
+Example: 10,000 requests/day × 30 days × 0.3s × 3GB = 270,000 GB-s
+→ Within free tier (400,000 GB-s) → **FREE!**
+```
+
+### Cost Optimization Tips
+
+1. **Use Arm/Graviton processors**: 34% cost savings over x86
+2. **Right-size memory**: Only allocate what you need (128MB - 10GB)
+3. **Optimize inference time**: Use quantized models (Q4_K_M, Q5_K_M)
+4. **Batch requests**: If your use case allows, batch multiple queries
+5. **Monitor with CloudWatch**: Track actual usage vs. free tier limits
+
+### Comparison to Alternatives
+
+| Deployment | Monthly Cost (3B model, 1M reqs) | Notes |
+|------------|----------------------------------|-------|
+| **AWS Lambda** | $0 - $5 | Free tier covers most use cases |
+| **EC2 t3.medium** | ~$30-40 | Always-on, no scaling benefits |
+| **GPU Instance** | $100-300+ | Overkill for small models |
+| **API Services** | $50-200 | Per-request pricing |
+
+**Lambda wins on cost for low-to-medium traffic scenarios** thanks to the generous free tier and pay-per-use model.
+
+### Real-World Example
+
+A personal chatbot with ~500 daily users:
+- 500 × 30 = 15,000 requests/month
+- 3B model, 2GB memory, 200ms inference
+- 15,000 × 0.2s × 2GB = 6,000 GB-s
+- **Well within free tier → $0/month!**
+
+---
 
 ## Next Steps
 
