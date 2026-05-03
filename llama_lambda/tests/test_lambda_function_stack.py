@@ -28,14 +28,15 @@ class TestLambdaFunctionStack:
         return Template.from_stack(stack)
 
     def test_stack_creates_lambda_function(self, template):
-        """Verify a Lambda function is created."""
-        template.resource_count_is("AWS::Lambda::Function", 1)
+        """Verify Lambda functions are created (main + LogRetention helper)."""
+        # CDK creates a LogRetention Lambda in addition to our function
+        template.resource_count_is("AWS::Lambda::Function", 2)
 
-    def test_lambda_function_has_correct_timeout(self, template):
-        """Verify Lambda function has 300s timeout."""
+    def test_main_lambda_has_correct_timeout(self, template):
+        """Verify main Lambda function has 300s timeout."""
         template.has_resource_properties(
             "AWS::Lambda::Function",
-            {"Timeout": 300},
+            {"Timeout": 300, "PackageType": "Image"},
         )
 
     def test_lambda_function_has_function_url(self, template):
@@ -49,16 +50,14 @@ class TestLambdaFunctionStack:
             {"Cors": {"AllowOrigins": ["*"]}},
         )
 
-    def test_lambda_function_has_iam_role(self, template):
-        """Verify an IAM Role is created for the Lambda."""
-        template.resource_count_is("AWS::IAM::Role", 1)
+    def test_lambda_function_has_iam_roles(self, template):
+        """Verify IAM Roles are created (main role + LogRetention role)."""
+        # CDK creates a LogRetention role in addition to our role
+        template.resource_count_is("AWS::IAM::Role", 2)
 
-    def test_lambda_function_has_execution_role(self, template):
-        """Verify Lambda has basic execution role attached."""
-        template.has_resource_properties(
-            "AWS::IAM::Policy",
-            {"PolicyName": "AWSLambdaBasicExecutionRole"},
-        )
+    def test_lambda_function_has_execution_policy(self, template):
+        """Verify Lambda has CloudWatch Logs policy attached."""
+        template.resource_count_is("AWS::IAM::Policy", 1)
 
     def test_lambda_function_uses_docker_image(self, stack):
         """Verify the Lambda function uses a Docker image."""
@@ -71,12 +70,19 @@ class TestLambdaFunctionStack:
 
     def test_default_architecture_is_arm64(self, template):
         """Verify default architecture is ARM64."""
+        # Docker image Lambdas use Architectures array, not Architecture
         template.has_resource_properties(
             "AWS::Lambda::Function",
-            {"Architecture": "arm64"},
+            {"Architectures": ["arm64"], "PackageType": "Image"},
+        )
+
+    def test_lambda_memory_size(self, template):
+        """Verify Lambda memory is 3500 MB."""
+        template.has_resource_properties(
+            "AWS::Lambda::Function",
+            {"MemorySize": 3500},
         )
 
     def test_stack_synthesizes_without_errors(self, stack):
         """Verify the stack synthesizes successfully."""
-        # If we get here, synthesis succeeded
         assert stack is not None

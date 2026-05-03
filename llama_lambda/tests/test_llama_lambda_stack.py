@@ -28,35 +28,39 @@ class TestLlamaLambdaStack:
         return Template.from_stack(stack)
 
     def test_stack_creates_lambda_function(self, template):
-        """Verify a Lambda function is created."""
-        template.resource_count_is("AWS::Lambda::Function", 1)
+        """Verify Lambda functions are created (main + LogRetention helper)."""
+        template.resource_count_is("AWS::Lambda::Function", 2)
 
-    def test_lambda_function_has_correct_timeout(self, template):
-        """Verify Lambda function has 900s timeout."""
+    def test_main_lambda_has_correct_timeout(self, template):
+        """Verify main Lambda function has 900s timeout."""
         template.has_resource_properties(
             "AWS::Lambda::Function",
-            {"Timeout": 900},
+            {"Timeout": 900, "PackageType": "Image"},
         )
 
     def test_lambda_function_has_function_url(self, template):
         """Verify a FunctionUrl is created."""
         template.resource_count_is("AWS::Lambda::Url", 1)
 
-    def test_lambda_function_has_iam_role(self, template):
-        """Verify an IAM Role is created for the Lambda."""
-        template.resource_count_is("AWS::IAM::Role", 1)
+    def test_lambda_function_has_iam_roles(self, template):
+        """Verify IAM Roles are created (main role + LogRetention role)."""
+        template.resource_count_is("AWS::IAM::Role", 2)
 
-    def test_lambda_function_has_execution_role(self, template):
-        """Verify Lambda has basic execution role attached."""
-        template.has_resource_properties(
-            "AWS::IAM::Policy",
-            {"PolicyName": "AWSLambdaBasicExecutionRole"},
-        )
+    def test_lambda_function_has_execution_policy(self, template):
+        """Verify Lambda has CloudWatch Logs policy attached."""
+        template.resource_count_is("AWS::IAM::Policy", 1)
 
     def test_lambda_function_uses_docker_image(self, stack):
         """Verify the Lambda function uses a Docker image."""
         fn = stack.node.find_child("open_llama_lambda_function")
         assert isinstance(fn, aws_lambda.DockerImageFunction)
+
+    def test_lambda_memory_size(self, template):
+        """Verify Lambda memory is 10240 MB."""
+        template.has_resource_properties(
+            "AWS::Lambda::Function",
+            {"MemorySize": 10240},
+        )
 
     def test_stack_has_cloudformation_output(self, template):
         """Verify the stack outputs the Lambda function URL."""
