@@ -2,11 +2,9 @@ name: CI
 
 on:
   push:
-    branches:
-      - '**'
+    branches: [main, dev, '**']
   pull_request:
-    branches:
-      - dev
+    branches: [main, dev]
 
 jobs:
   test:
@@ -21,15 +19,16 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install -r llama_lambda/requirements.txt
-          pip install -r llama_lambda/requirements-dev.txt
+          python -m pip install --upgrade pip
+          cd llama_lambda
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
           pip install pytest-cov
 
       - name: Run tests
         run: |
           cd llama_lambda
-          pytest --cov=llama_lambda --cov-report=term-missing --cov-report=xml
+          pytest --cov=llama_lambda --cov-report=term-missing  --cov-report=xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
