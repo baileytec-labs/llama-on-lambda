@@ -23,8 +23,18 @@ jobs:
           cd llama_lambda
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
+          pip install pytest-cov
 
       - name: Run tests
         run: |
           cd llama_lambda
-          python -m pytest tests/ -v
+          pytest --cov=llama_lambda --cov-report=term-missing  --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: github.event_name == 'push'
+        with:
+          file: ./llama_lambda/coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
