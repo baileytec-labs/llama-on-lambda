@@ -1,4 +1,4 @@
-# OpenLLaMa on AWS Lambda
+# Llama Models on AWS Lambda
 
 :warning: **FOR EDUCATIONAL PURPOSES ONLY** :warning:
 
@@ -6,9 +6,16 @@ Docker images, code, buildspecs, and guidance provided as proof of concept only 
 
 ### Update: The Docker container has been upgraded to now be fully compatible with the [OpenAI API Spec](https://platform.openai.com/docs/api-reference/introduction)
 
-## Backgorund
+## Model Support
 
-Today, there is an explosion of generative AI capabilities across various platforms. Recently, an [open source release of a LLaMa compatible model](https://github.com/openlm-research/open_llama) was trained on the open RedPyjama Dataset, which now opens the possibilities for more freedom to use these types of generative models in various applications. 
+**This project supports ANY GGUF quantized Llama-compatible model**, including:
+- **Llama 3** (7B, 8B, and smaller variants)
+- **Llama 2** (7B, 13B, and smaller variants)
+- **OpenLLaMa** (3B, 7B, 13B)
+- **Mistral** (7B)
+- **Any other GGUF model** under 6GB
+
+**Important**: You will need GGUF quantized versions of your model. llama-cpp-python requires GGUF format (GGML is no longer supported). 
 
 Efforts have also been made to make these models as efficient as possible via the [llama.cpp project](https://github.com/ggerganov/llama.cpp), enabling the usage of more accessible CPU and RAM configurations instead of the limited and expensive GPU capabilities. In fact, with many of the quantizations of these models, you can provide reasonably responsive inferences on as little as 4-6 GB of RAM on a CPU, and even on an Android smartphone, if you're patient enough.
 
